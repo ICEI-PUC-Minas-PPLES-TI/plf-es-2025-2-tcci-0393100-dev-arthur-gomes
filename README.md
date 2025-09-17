@@ -1,14 +1,11 @@
 [![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=20563672)
-# [Nome do projeto]
+# Swagger to SDK
 
-[Escreva um ou dois  parágrafo resumindo o objetivo do seu projeto.]
+Este projeto tem o objetivo de automatizar a geração de clientes de acesso a serviços baseados no padrão de Transferência de Estado Representacional para aplicações de interface com o usuário, utilizando o TypeScript como linguagem principal e tomando como fonte de verdade, especificações em Swagger/OpenAPI.
 
 ## Alunos integrantes da equipe
 
-* [Nome completo do aluno 1]
-* [Nome completo do aluno 2]
-* [Nome completo do aluno 3]
-* [Nome completo do aluno 4]
+* Arthur do Nascimento Sita Gomes
 
 ## Professores responsáveis
 
