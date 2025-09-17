@@ -1,0 +1,69 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:142.0) Gecko/20100101 Firefox/142.0" version="28.2.3">
+  <diagram name="Página-1" id="0O9jW7Vgj1Rz3YdZnh-9">
+    <mxGraphModel dx="2124" dy="2270" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="MQoVllglrxVQsuXpXJyg-3" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1055.08" y="-320" width="455" height="610" as="geometry" />
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-18" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;endArrow=none;endFill=0;" edge="1" parent="1" source="MQoVllglrxVQsuXpXJyg-21" target="MQoVllglrxVQsuXpXJyg-29">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1210.08" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-19" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;endArrow=none;endFill=0;" edge="1" parent="1" source="MQoVllglrxVQsuXpXJyg-21" target="MQoVllglrxVQsuXpXJyg-30">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-21" value="Desenvolvedor" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="970" y="40" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-29" value="Importar especificação OpenApi pelo arquivo" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1108.79" y="-230" width="90" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-30" value="Importar especificação OpenApi pela URL" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1322.58" y="-70" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-31" value="&lt;div align=&quot;center&quot;&gt;&lt;font style=&quot;font-size: 23px;&quot;&gt;&lt;b&gt;Swagger to SDK&lt;/b&gt;&lt;/font&gt;&lt;/div&gt;" style="text;strokeColor=none;align=center;fillColor=none;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="1136" y="-320" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-32" value="Configurar URL base" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="190" width="70" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-35" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;endArrow=none;endFill=0;" edge="1" parent="1" source="MQoVllglrxVQsuXpXJyg-21" target="MQoVllglrxVQsuXpXJyg-32">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1070" y="70" as="sourcePoint" />
+            <mxPoint x="1185" y="40" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-36" value="Configurar adapter" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1229.79" y="20" width="70" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-37" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" target="MQoVllglrxVQsuXpXJyg-36" source="MQoVllglrxVQsuXpXJyg-21">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1162.62" y="35" as="sourcePoint" />
+            <mxPoint x="1362.62" y="5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-39" value="Gerar funções tipadas" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="130" width="70" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-40" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" target="MQoVllglrxVQsuXpXJyg-39" source="MQoVllglrxVQsuXpXJyg-21">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1160" y="160" as="sourcePoint" />
+            <mxPoint x="1537.62" y="95" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-43" value="Injetar as credencias de segurança" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1229.79" y="-180" width="92.42" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="MQoVllglrxVQsuXpXJyg-44" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=-0.033;entryY=0.59;entryDx=0;entryDy=0;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;endArrow=none;endFill=0;entryPerimeter=0;" edge="1" parent="1" source="MQoVllglrxVQsuXpXJyg-21" target="MQoVllglrxVQsuXpXJyg-43">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1050" y="80" as="sourcePoint" />
+            <mxPoint x="1145" y="30" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
