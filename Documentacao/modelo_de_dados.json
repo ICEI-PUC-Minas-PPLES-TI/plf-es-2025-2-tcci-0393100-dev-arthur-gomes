@@ -1,0 +1,72 @@
+{
+  "baseURL": "https://api.exemplo.com",
+  "adapter": "axios",
+  "outputPath": "./src/api",
+  "importPath": "./openapi.json",
+  "openAPI": {
+    "version": "3.0.0",
+    "paths": ["/api/v1/users", "/api/v1/users/{id}"],
+    "schemas": [
+      {
+        "name": "User",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": false,
+            "format": "string"
+          },
+          "name": {
+            "type": "string",
+            "nullable": false,
+            "format": "string"
+          }
+        },
+        "required": ["id", "name"],
+        "enum": ["USER", "ADMIN"]
+      }
+    ],
+    "operations": [
+      {
+        "operationId": "getUser",
+        "path": "/api/v1/users",
+        "method": "GET",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": [
+              {
+                "type": "string",
+                "nullable": false,
+                "format": "string"
+              }
+            ]
+          }
+        ],
+        "requestBody": [
+          {
+            "content": {
+              "application/json": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        ],
+        "response": [
+          {
+            "description": "User created",
+            "status": "201",
+            "content": {
+              "application/json": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "status": "COMPLETED"
+  }
+}
