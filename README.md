@@ -9,8 +9,10 @@ Este projeto tem o objetivo de automatizar a geração de clientes de acesso a s
 
 ## Professores responsáveis
 
-* [Nome completo do professor 1]
-* [Nome completo do professor 2]
+* Cleiton Silva Tavares
+* Raphael Ramos Dias Costa
+* Leonardo Vilela Cardoso
+* Danilo de Quadros Maia Filho
 
 ## Instruções de utilização
 
