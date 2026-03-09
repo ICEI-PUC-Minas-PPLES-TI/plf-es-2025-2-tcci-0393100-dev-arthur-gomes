@@ -1,0 +1,51 @@
+{
+  "name": "plf-es-extension",
+  "displayName": "PLF ES Extension",
+  "description": "A simple VS Code extension",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "plf-es-sidebar",
+          "title": "PLF ES",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "plf-es-sidebar": [
+        {
+          "id": "plf-es-view",
+          "name": "PLF ES",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "plf-es-extension.helloWorld",
+        "title": "Hello World"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}
