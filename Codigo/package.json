@@ -1,7 +1,7 @@
 {
-  "name": "plf-es-extension",
-  "displayName": "PLF ES Extension",
-  "description": "A simple VS Code extension",
+  "name": "swagger-to-sdk",
+  "displayName": "Swagger to SDK",
+  "description": "Generate typed TypeScript SDK files from OpenAPI specs",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.85.0"
@@ -9,7 +9,11 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onView:plf-es-view",
+    "onCommand:plf-es-extension.importOpenAPI",
+    "onCommand:plf-es-extension.generateSDK"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
@@ -32,20 +36,57 @@
     },
     "commands": [
       {
-        "command": "plf-es-extension.helloWorld",
-        "title": "Hello World"
+        "command": "plf-es-extension.importOpenAPI",
+        "title": "PLF ES: Import OpenAPI"
+      },
+      {
+        "command": "plf-es-extension.generateSDK",
+        "title": "PLF ES: Generate SDK"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "PLF ES Extension",
+      "properties": {
+        "plfEs.importPath": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAPI source file path or URL used by PLF ES."
+        },
+        "plfEs.outputPath": {
+          "type": "string",
+          "default": "generated-sdk",
+          "description": "Output directory for generated SDK files."
+        },
+        "plfEs.baseURL": {
+          "type": "string",
+          "default": "",
+          "description": "Optional base URL used to prefix generated client requests."
+        },
+        "plfEs.adapter": {
+          "type": "string",
+          "enum": [
+            "fetch"
+          ],
+          "default": "fetch",
+          "description": "HTTP adapter used by generated SDK clients."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "vitest run"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
     "@types/node": "^20.0.0",
-    "typescript": "^5.3.0"
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0",
+    "vitest": "^4.1.0"
+  },
+  "dependencies": {
+    "yaml": "^2.8.2"
   }
 }
