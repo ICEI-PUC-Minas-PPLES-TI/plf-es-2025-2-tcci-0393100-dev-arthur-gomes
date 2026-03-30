@@ -20,7 +20,7 @@
       "activitybar": [
         {
           "id": "plf-es-sidebar",
-          "title": "PLF ES",
+          "title": "Swagger to SDK",
           "icon": "resources/icon.svg"
         }
       ]
@@ -29,7 +29,7 @@
       "plf-es-sidebar": [
         {
           "id": "plf-es-view",
-          "name": "PLF ES",
+          "name": "Swagger to SDK",
           "type": "webview"
         }
       ]
@@ -37,20 +37,20 @@
     "commands": [
       {
         "command": "plf-es-extension.importOpenAPI",
-        "title": "PLF ES: Import OpenAPI"
+        "title": "Swagger to SDK: Import OpenAPI"
       },
       {
         "command": "plf-es-extension.generateSDK",
-        "title": "PLF ES: Generate SDK"
+        "title": "Swagger to SDK: Generate SDK"
       }
     ],
     "configuration": {
-      "title": "PLF ES Extension",
+      "title": "Swagger to SDK",
       "properties": {
         "plfEs.importPath": {
           "type": "string",
           "default": "",
-          "description": "OpenAPI source file path or URL used by PLF ES."
+          "description": "OpenAPI source file path or URL used by Swagger to SDK."
         },
         "plfEs.outputPath": {
           "type": "string",
