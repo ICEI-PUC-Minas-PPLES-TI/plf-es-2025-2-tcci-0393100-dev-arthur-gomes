@@ -21,6 +21,10 @@ export function requestBodyTypeName(functionName: string): string {
   return `${toTypeName(functionName)}RequestBody`;
 }
 
+export function operationArgsTypeName(functionName: string): string {
+  return `${toTypeName(functionName)}RequestArgs`;
+}
+
 export function responseTypeName(functionName: string, statusCode: string): string {
   return `${toTypeName(functionName)}Response${statusCode.replace(/[^0-9A-Za-z]/g, '')}`;
 }

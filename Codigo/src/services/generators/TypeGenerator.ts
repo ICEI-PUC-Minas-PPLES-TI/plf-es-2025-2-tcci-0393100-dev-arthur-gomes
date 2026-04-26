@@ -8,6 +8,7 @@ import { toTypeName } from '../../utils/naming';
 import {
   cookieParamsTypeName,
   headerParamsTypeName,
+  operationArgsTypeName,
   pathParamsTypeName,
   pickPrimaryResponseStatus,
   queryParamsTypeName,
@@ -99,6 +100,8 @@ export class TypeGenerator {
       );
     }
 
+    lines.push(this.generateOperationArgsInterface(operation));
+
     return lines;
   }
 
@@ -116,6 +119,42 @@ export class TypeGenerator {
       .join('\n');
 
     return `export interface ${name} {\n${body}\n}`;
+  }
+
+  private generateOperationArgsInterface(operation: OperationModel): string {
+    const fields: string[] = [];
+    const hasPathParams = operation.parameters.some((parameter) => parameter.in === 'path');
+    const hasQueryParams = operation.parameters.some((parameter) => parameter.in === 'query');
+    const hasHeaderParams = operation.parameters.some((parameter) => parameter.in === 'header');
+    const hasCookieParams = operation.parameters.some((parameter) => parameter.in === 'cookie');
+    const hasBody = Boolean(operation.requestBody?.content['application/json']);
+    const bodyRequired = operation.requestBody?.required === true;
+
+    if (hasPathParams) {
+      fields.push(`  path: ${pathParamsTypeName(operation.functionName)};`);
+    }
+
+    if (hasQueryParams) {
+      fields.push(`  query?: ${queryParamsTypeName(operation.functionName)};`);
+    }
+
+    if (hasHeaderParams) {
+      fields.push(`  headerParams?: ${headerParamsTypeName(operation.functionName)};`);
+    }
+
+    if (hasCookieParams) {
+      fields.push(`  cookieParams?: ${cookieParamsTypeName(operation.functionName)};`);
+    }
+
+    if (hasBody) {
+      fields.push(
+        `  body${bodyRequired ? '' : '?'}: ${requestBodyTypeName(operation.functionName)};`
+      );
+    }
+
+    fields.push('  headers?: Record<string, string>;');
+
+    return `export interface ${operationArgsTypeName(operation.functionName)} {\n${fields.join('\n')}\n}`;
   }
 
   private getResponseType(responses: OperationResponseModel[], statusCode: string): string {

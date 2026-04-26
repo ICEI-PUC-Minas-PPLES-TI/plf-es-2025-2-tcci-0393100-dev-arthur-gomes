@@ -1,6 +1,9 @@
+import type { AdapterKind } from '../models/config';
+
 export interface UIConfigPayload {
   baseURL?: string;
   importPath?: string;
+  adapter: AdapterKind;
   outputPath?: string;
   hasOpenAPI: boolean;
 }
@@ -8,40 +11,42 @@ export interface UIConfigPayload {
 export type UIToExtensionMessage =
   | { type: 'ui:ready' }
   | {
-    type: 'ui:log';
-    payload: {
-      level: 'info' | 'error';
-      message: string;
-    };
-  }
+      type: 'ui:log';
+      payload: {
+        level: 'info' | 'error';
+        message: string;
+      };
+    }
   | {
-    type: 'ui:import';
-    payload: {
-      source: string;
+      type: 'ui:import';
+      payload: {
+        source: string;
       baseURL?: string;
       outputPath?: string;
     };
   }
   | {
-    type: 'ui:generate';
-    payload?: {
-      baseURL?: string;
-      outputPath?: string;
-    };
-  }
+      type: 'ui:generate';
+      payload?: {
+        baseURL?: string;
+        adapter?: AdapterKind;
+        outputPath?: string;
+      };
+    }
   | {
-    type: 'ui:updateConfig';
-    payload: {
-      baseURL?: string;
-      outputPath?: string;
-    };
-  }
+      type: 'ui:updateConfig';
+      payload: {
+        baseURL?: string;
+        adapter?: AdapterKind;
+        outputPath?: string;
+      };
+    }
   | {
-    type: 'ui:pickOutputPath';
-    payload?: {
-      currentPath?: string;
+      type: 'ui:pickOutputPath';
+      payload?: {
+        currentPath?: string;
+      };
     };
-  };
 
 export type ExtensionToUIMessage =
   | {
@@ -64,16 +69,16 @@ export type ExtensionToUIMessage =
     };
   }
   | {
-    type: 'generate:success';
-    payload: {
-      files: string[];
-      warnings?: string[];
+      type: 'generate:success';
+      payload: {
+        files: string[];
+        warnings?: string[];
     };
   }
   | {
-    type: 'generate:error';
-    payload: {
-      errors: string[];
-      warnings?: string[];
+      type: 'generate:error';
+      payload: {
+        errors: string[];
+        warnings?: string[];
+      };
     };
-  };

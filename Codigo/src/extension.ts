@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { ConfigManager } from './services/config/ConfigManager';
 import { FileWriter } from './services/generators/FileWriter';
 import { OperationNameResolver } from './services/generators/OperationNameResolver';
+import { ReactQueryGenerator } from './services/generators/ReactQueryGenerator';
 import { TypeGenerator } from './services/generators/TypeGenerator';
 import { OpenAPILoader } from './services/parsers/OpenAPILoader';
 import { OpenAPIValidator } from './services/parsers/OpenAPIValidator';
@@ -87,6 +88,7 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
           await this.controller.updateConfig({
             outputPath: message.payload.outputPath,
             baseURL: message.payload.baseURL,
+            adapter: message.payload.adapter,
           });
           await this.pushConfig();
           break;
@@ -135,6 +137,7 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
           const result = await this.controller.runGenerateMethods({
             outputPath: message.payload?.outputPath,
             baseURL: message.payload?.baseURL,
+            adapter: message.payload?.adapter,
           });
 
           this.logInfo(`Generation completed with message: ${result.type}`);
@@ -279,6 +282,26 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
     }
 
     input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--vscode-input-background);
+      color: var(--text);
+      font-size: 11px;
+      outline: none;
+      transition:
+        border-color 120ms ease,
+        box-shadow 120ms ease;
+    }
+
+    select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 1px var(--accent);
     }
@@ -501,6 +524,15 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
               <span id="baseURLMeta">Can stay blank</span>
             </div>
           </div>
+
+          <div class="field">
+            <label for="adapter">Adapter</label>
+            <select id="adapter">
+              <option value="fetch">Native fetch</option>
+              <option value="axios">Axios</option>
+              <option value="react-query">React Query</option>
+            </select>
+          </div>
       </section>
 
       <section class="section">
@@ -540,6 +572,7 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
       const sourceInput = document.getElementById('source');
       const outputPathInput = document.getElementById('outputPath');
       const baseURLInput = document.getElementById('baseURL');
+      const adapterSelect = document.getElementById('adapter');
       const sourceMeta = document.getElementById('sourceMeta');
       const outputMeta = document.getElementById('outputMeta');
       const baseURLMeta = document.getElementById('baseURLMeta');
@@ -554,6 +587,7 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
           source: '',
           outputPath: '',
           baseURL: '',
+          adapter: 'fetch',
         },
         status: {
           tone: 'idle',
@@ -580,6 +614,7 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
             source: (next.inputs && next.inputs.source) || defaultState.inputs.source,
             outputPath: (next.inputs && next.inputs.outputPath) || defaultState.inputs.outputPath,
             baseURL: (next.inputs && next.inputs.baseURL) || defaultState.inputs.baseURL,
+            adapter: (next.inputs && next.inputs.adapter) || defaultState.inputs.adapter,
           },
           status: {
             tone: (next.status && next.status.tone) || defaultState.status.tone,
@@ -618,6 +653,7 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
         sourceInput.value = state.inputs.source || '';
         outputPathInput.value = state.inputs.outputPath || '';
         baseURLInput.value = state.inputs.baseURL || '';
+        adapterSelect.value = state.inputs.adapter || 'fetch';
 
         sourceMeta.textContent = state.inputs.source
           ? (isRemoteSource(state.inputs.source) ? 'Remote spec' : 'Local file')
@@ -720,21 +756,32 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
         state.inputs.source = sourceInput.value.trim();
         state.inputs.outputPath = outputPathInput.value.trim();
         state.inputs.baseURL = baseURLInput.value.trim();
+        if (adapterSelect.value === 'axios') {
+          state.inputs.adapter = 'axios';
+        } else if (adapterSelect.value === 'react-query') {
+          state.inputs.adapter = 'react-query';
+        } else {
+          state.inputs.adapter = 'fetch';
+        }
         renderInputs();
         saveState();
       }
 
       function applyConfigPayload(payload) {
-        if (!state.inputs.source && payload.importPath) {
+        if (payload.importPath !== undefined) {
           state.inputs.source = payload.importPath;
         }
 
-        if (!state.inputs.outputPath && payload.outputPath) {
+        if (payload.outputPath !== undefined) {
           state.inputs.outputPath = payload.outputPath;
         }
 
-        if (!state.inputs.baseURL && payload.baseURL) {
+        if (payload.baseURL !== undefined) {
           state.inputs.baseURL = payload.baseURL;
+        }
+
+        if (payload.adapter !== undefined) {
+          state.inputs.adapter = payload.adapter;
         }
 
         renderInputs();
@@ -760,6 +807,7 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
           payload: {
             outputPath: outputPathInput.value,
             baseURL: baseURLInput.value,
+            adapter: state.inputs.adapter,
           },
         });
         pushStatus('success', 'Saved', 'Workspace settings updated.', []);
@@ -802,6 +850,7 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
           payload: {
             outputPath: state.inputs.outputPath,
             baseURL: state.inputs.baseURL,
+            adapter: state.inputs.adapter,
           },
         });
       });
@@ -850,6 +899,7 @@ class SidebarViewProvider implements vscode.WebviewViewProvider {
       sourceInput.addEventListener('input', syncInputsToState);
       outputPathInput.addEventListener('input', syncInputsToState);
       baseURLInput.addEventListener('input', syncInputsToState);
+      adapterSelect.addEventListener('change', syncInputsToState);
 
       renderInputs();
       renderStatus();
@@ -890,6 +940,7 @@ export function activate(context: vscode.ExtensionContext): void {
     operationNameResolver
   );
   const typeGenerator = new TypeGenerator();
+  const reactQueryGenerator = new ReactQueryGenerator();
   const fileWriter = new FileWriter();
 
   const controller = new ExtensionController(
@@ -897,6 +948,7 @@ export function activate(context: vscode.ExtensionContext): void {
     openAPILoader,
     operationNameResolver,
     typeGenerator,
+    reactQueryGenerator,
     fileWriter,
     workspaceRoot
   );

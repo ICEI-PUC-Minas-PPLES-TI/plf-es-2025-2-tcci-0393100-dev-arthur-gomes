@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { Config } from '../../models/config';
+import type { AdapterKind, Config } from '../../models/config';
 
 const CONFIG_STORAGE_KEY = 'plf-es-extension.config';
 const SETTINGS_NAMESPACE = 'plfEs';
@@ -24,7 +24,7 @@ export class ConfigManager {
       ...workspaceConfig,
       ...stored,
       outputPath: stored?.outputPath ?? workspaceConfig.outputPath ?? this.defaultOutputPath,
-      adapter: 'fetch',
+      adapter: stored?.adapter ?? workspaceConfig.adapter ?? 'fetch',
     };
   }
 
@@ -32,7 +32,7 @@ export class ConfigManager {
     const normalized: Config = {
       ...configuration,
       outputPath: configuration.outputPath ?? this.defaultOutputPath,
-      adapter: 'fetch',
+      adapter: this.normalizeAdapter(configuration.adapter),
     };
 
     await this.workspaceState.update(CONFIG_STORAGE_KEY, normalized);
@@ -44,7 +44,7 @@ export class ConfigManager {
     const next = {
       ...current,
       ...partial,
-      adapter: 'fetch' as const,
+      adapter: this.normalizeAdapter(partial.adapter ?? current.adapter),
     };
 
     await this.setConfig(next);
@@ -62,7 +62,9 @@ export class ConfigManager {
       importPath: this.getWorkspaceValue<string>(configuration, SETTINGS_KEYS.importPath),
       outputPath: this.getWorkspaceValue<string>(configuration, SETTINGS_KEYS.outputPath),
       baseURL: this.getWorkspaceValue<string>(configuration, SETTINGS_KEYS.baseURL),
-      adapter: 'fetch',
+      adapter: this.normalizeAdapter(
+        this.getWorkspaceValue<AdapterKind>(configuration, SETTINGS_KEYS.adapter)
+      ),
     };
   }
 
@@ -103,9 +105,21 @@ export class ConfigManager {
       ),
       workspaceConfiguration.update(
         SETTINGS_KEYS.adapter,
-        'fetch',
+        configuration.adapter ?? 'fetch',
         vscode.ConfigurationTarget.Workspace
       ),
     ]);
+  }
+
+  private normalizeAdapter(adapter: AdapterKind | undefined): AdapterKind {
+    if (adapter === 'axios') {
+      return 'axios';
+    }
+
+    if (adapter === 'react-query') {
+      return 'react-query';
+    }
+
+    return 'fetch';
   }
 }

@@ -65,7 +65,9 @@
         "plfEs.adapter": {
           "type": "string",
           "enum": [
-            "fetch"
+            "fetch",
+            "axios",
+            "react-query"
           ],
           "default": "fetch",
           "description": "HTTP adapter used by generated SDK clients."

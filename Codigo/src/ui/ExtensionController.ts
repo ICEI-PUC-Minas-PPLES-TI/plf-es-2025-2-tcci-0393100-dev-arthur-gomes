@@ -1,9 +1,10 @@
 import { join } from 'node:path';
-import type { Config } from '../models/config';
+import type { AdapterKind, Config } from '../models/config';
 import type { GenerateArtifactsResult } from '../models/results';
 import { ConfigManager } from '../services/config/ConfigManager';
 import { FileWriter } from '../services/generators/FileWriter';
 import { OperationNameResolver } from '../services/generators/OperationNameResolver';
+import { ReactQueryGenerator } from '../services/generators/ReactQueryGenerator';
 import { SDKGenerator } from '../services/generators/SDKGenerator';
 import { TypeGenerator } from '../services/generators/TypeGenerator';
 import { OpenAPILoader } from '../services/parsers/OpenAPILoader';
@@ -15,6 +16,7 @@ export class ExtensionController {
     private readonly openAPILoader: OpenAPILoader,
     private readonly operationNameResolver: OperationNameResolver,
     private readonly typeGenerator: TypeGenerator,
+    private readonly reactQueryGenerator: ReactQueryGenerator,
     private readonly fileWriter: FileWriter,
     private readonly workspaceRoot: string
   ) {}
@@ -28,6 +30,7 @@ export class ExtensionController {
 
     return {
       baseURL: config.baseURL,
+      adapter: config.adapter,
       importPath: config.importPath,
       outputPath: config.outputPath,
       hasOpenAPI: Boolean(config.openAPI),
@@ -39,6 +42,7 @@ export class ExtensionController {
       ...partialConfig,
       baseURL: this.normalizeOptionalString(partialConfig.baseURL),
       outputPath: this.normalizeOptionalString(partialConfig.outputPath),
+      adapter: this.normalizeAdapter(partialConfig.adapter),
     };
 
     return this.configManager.mergeConfig(normalized);
@@ -88,11 +92,17 @@ export class ExtensionController {
   }
 
   async runGenerateMethods(
-    partialConfig: Pick<Config, 'baseURL' | 'outputPath'> = {}
+    partialConfig: Partial<Pick<Config, 'adapter' | 'baseURL' | 'outputPath'>> = {}
   ): Promise<ExtensionToUIMessage> {
-    const currentConfig = await this.updateConfig(partialConfig);
+    const currentConfig = await this.configManager.getConfig();
+    const runtimeConfig: Config = {
+      ...currentConfig,
+      baseURL: this.normalizeOptionalString(partialConfig.baseURL) ?? currentConfig.baseURL,
+      outputPath: this.normalizeOptionalString(partialConfig.outputPath) ?? currentConfig.outputPath,
+      adapter: this.normalizeAdapter(partialConfig.adapter ?? currentConfig.adapter),
+    };
 
-    if (!currentConfig.openAPI) {
+    if (!runtimeConfig.openAPI) {
       return {
         type: 'generate:error',
         payload: {
@@ -102,26 +112,33 @@ export class ExtensionController {
     }
 
     const outputPath =
-      this.normalizeOptionalString(currentConfig.outputPath) ?? join(this.workspaceRoot, 'generated-sdk');
+      this.normalizeOptionalString(runtimeConfig.outputPath) ?? join(this.workspaceRoot, 'generated-sdk');
 
-    const resolvedOperations = this.operationNameResolver.resolveAll(currentConfig.openAPI.operations);
+    const resolvedOperations = this.operationNameResolver.resolveAll(runtimeConfig.openAPI.operations);
     const openAPI = {
-      ...currentConfig.openAPI,
+      ...runtimeConfig.openAPI,
       operations: resolvedOperations,
     };
 
     const typesContent = this.typeGenerator.createTypes(openAPI.schemas, openAPI.operations);
     const sdkGenerator = new SDKGenerator({
-      ...currentConfig,
+      ...runtimeConfig,
       outputPath,
     });
+    const transportContent = sdkGenerator.generateTransport();
     const clientContent = sdkGenerator.generateMethods(openAPI.operations);
-
-    const generationResult = await this.writeArtifacts(outputPath, {
+    const generatedFiles: Record<string, string> = {
       'types.ts': typesContent,
+      'transport.ts': transportContent,
       'client.ts': clientContent,
-      'index.ts': "export * from './types';\nexport * from './client';\n",
-    });
+    };
+
+    if (runtimeConfig.adapter === 'react-query') {
+      generatedFiles['react-query.ts'] = this.reactQueryGenerator.generateModule(openAPI.operations);
+    }
+
+    generatedFiles['index.ts'] = this.generateIndexFile(runtimeConfig.adapter);
+    const generationResult = await this.writeArtifacts(outputPath, generatedFiles);
 
     if (!generationResult.success) {
       return {
@@ -132,12 +149,6 @@ export class ExtensionController {
         },
       };
     }
-
-    await this.configManager.setConfig({
-      ...currentConfig,
-      outputPath,
-      openAPI,
-    });
 
     return {
       type: 'generate:success',
@@ -175,5 +186,27 @@ export class ExtensionController {
 
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : undefined;
+  }
+
+  private normalizeAdapter(adapter: AdapterKind | undefined): AdapterKind {
+    if (adapter === 'axios') {
+      return 'axios';
+    }
+
+    if (adapter === 'react-query') {
+      return 'react-query';
+    }
+
+    return 'fetch';
+  }
+
+  private generateIndexFile(adapter: AdapterKind): string {
+    const exports = ["export * from './types';", "export * from './transport';", "export * from './client';"];
+
+    if (adapter === 'react-query') {
+      exports.push("export * from './react-query';");
+    }
+
+    return `${exports.join('\n')}\n`;
   }
 }
