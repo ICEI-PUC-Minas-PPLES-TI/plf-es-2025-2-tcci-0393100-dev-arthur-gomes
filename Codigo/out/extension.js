@@ -149,16 +149,22 @@ class SidebarViewProvider {
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';" />
   <style>
     :root {
-      color-scheme: dark;
+      color-scheme: light dark;
       --bg: var(--vscode-sideBar-background);
-      --panel: var(--vscode-sideBar-background);
-      --line: var(--vscode-sideBarSectionHeader-border);
-      --line-strong: var(--vscode-sideBarSectionHeader-border);
+      --line: var(--vscode-sideBarSectionHeader-border, var(--vscode-panel-border));
       --muted: var(--vscode-descriptionForeground);
       --text: var(--vscode-foreground);
       --accent: var(--vscode-focusBorder);
-      --danger: var(--vscode-inputValidation-errorBorder);
-      --success: var(--vscode-testing-iconPassed);
+      --brand: var(--vscode-button-background);
+      --brand-fg: var(--vscode-button-foreground);
+      --danger: var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground));
+      --success: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+      --radius: 8px;
+      --surface: color-mix(in srgb, var(--text) 4%, transparent);
+      --surface-strong: color-mix(in srgb, var(--text) 7%, transparent);
+      --tint-brand: color-mix(in srgb, var(--brand) 22%, transparent);
+      --tint-success: color-mix(in srgb, var(--success) 20%, transparent);
+      --tint-danger: color-mix(in srgb, var(--danger) 16%, transparent);
     }
 
     * {
@@ -177,40 +183,152 @@ class SidebarViewProvider {
     .shell {
       height: 100vh;
       overflow-y: auto;
-      padding: 0;
+      padding: 0 0 4px;
     }
 
-    .app {
-      display: grid;
-      gap: 0;
-      width: 100%;
-      min-height: 100%;
-      padding: 0;
-    }
-
-    .section {
-      display: grid;
+    .masthead {
+      display: flex;
+      align-items: center;
       gap: 10px;
-      padding: 12px 12px 14px;
-      border-bottom: 1px solid var(--line);
+      padding: 14px 14px 12px;
     }
 
-    .section:first-child {
-      padding-top: 10px;
-    }
-
-    .section:last-child {
-      border-bottom: 0;
-    }
-
-    .section-title {
+    .masthead-mark {
       display: grid;
-      gap: 0;
-      padding-left: 12px;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: var(--tint-brand);
+      color: var(--brand);
+    }
+
+    .masthead-mark svg { width: 15px; height: 15px; }
+
+    .masthead-copy { display: grid; gap: 1px; }
+
+    .masthead-copy h1 {
+      margin: 0;
       font-size: 12px;
       font-weight: 600;
-      color: var(--text);
+      letter-spacing: 0.02em;
     }
+
+    .masthead-copy p {
+      margin: 0;
+      font-size: 10.5px;
+      color: var(--muted);
+    }
+
+    .steps {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .step { border-bottom: 1px solid var(--line); }
+
+    .step-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 14px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: background 120ms ease;
+    }
+
+    .step-head:hover,
+    .step.is-open .step-head { background: var(--surface); }
+
+    .step-badge {
+      position: relative;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1.5px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+    }
+
+    .step.is-open .step-badge {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: var(--brand-fg);
+    }
+
+    .step.is-done .step-badge {
+      background: var(--tint-success);
+      border-color: transparent;
+      color: transparent;
+    }
+
+    .step.is-done .step-badge::after {
+      content: '\\2713';
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: var(--success);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .step-headings {
+      display: grid;
+      gap: 1px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .step-title { font-size: 12px; font-weight: 600; }
+
+    .step-summary {
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .step.is-open .step-summary { display: none; }
+
+    .step-caret {
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      transition: transform 160ms ease;
+    }
+
+    .step.is-open .step-caret { transform: rotate(90deg); }
+
+    .step-caret svg { width: 12px; height: 12px; }
+
+    .step-body { display: none; padding: 2px 14px 16px 46px; }
+
+    .step.is-open .step-body { display: grid; gap: 12px; }
+
+    .step-hint {
+      margin: 0;
+      font-size: 10.5px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .step-footer { display: flex; justify-content: flex-end; }
 
     .field {
       display: grid;
@@ -292,89 +410,122 @@ class SidebarViewProvider {
       color: var(--muted);
     }
 
-    .actions {
-      display: grid;
-      gap: 8px;
-    }
-
-    button {
+    .btn {
       position: relative;
       width: 100%;
       border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 10px 11px;
+      border-radius: var(--radius);
+      padding: 9px 12px;
       cursor: pointer;
-      background: var(--vscode-button-background);
+      background: var(--surface);
       color: var(--text);
-      font-size: 11px;
-      text-align: left;
-      transition: border-color 120ms ease;
+      font-size: 11.5px;
+      font-weight: 500;
+      text-align: center;
+      transition: background 120ms ease, border-color 120ms ease;
     }
 
-    button:hover {
+    .btn:hover {
       border-color: var(--accent);
+      background: var(--surface-strong);
     }
 
-    button.primary {
-      background: var(--vscode-button-background);
-      color: var(--vscode-button-foreground);
+    .btn:focus-visible {
+      outline: 1px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .btn-primary {
+      border-color: transparent;
+      background: var(--brand);
+      color: var(--brand-fg);
       font-weight: 600;
     }
 
-    .status-shell {
+    .btn-primary:hover {
+      border-color: transparent;
+      background: color-mix(in srgb, var(--brand) 88%, var(--text));
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .link-button {
+      width: auto;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 10.5px;
+      padding: 2px;
+      cursor: pointer;
+    }
+
+    .link-button:hover {
+      color: var(--text);
+      text-decoration: underline;
+    }
+
+    .statusbar {
       display: grid;
-      gap: 8px;
-    }
-
-    .status-toolbar {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 0 12px 0 24px;
-    }
-
-    .status-main {
-      display: flex;
       gap: 10px;
-      align-items: flex-start;
+      padding: 12px 14px 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .statusbar-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
     }
 
     .status-mark {
-      width: 14px;
-      height: 14px;
-      margin-top: 2px;
-      border-radius: 999px;
-      background: var(--vscode-descriptionForeground);
       flex: 0 0 auto;
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--muted);
     }
 
     .status-mark.is-loading {
-      background: var(--vscode-descriptionForeground);
+      background: var(--brand);
+      animation: pulse 1.2s ease-in-out infinite;
     }
 
-    .status-mark.is-success {
-      background: var(--success);
+    .status-mark.is-success { background: var(--success); }
+    .status-mark.is-error { background: var(--danger); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
     }
 
-    .status-mark.is-error {
-      background: var(--danger);
-    }
-
-    .status-copy {
+    .statusbar-text {
       display: grid;
-      gap: 4px;
+      gap: 1px;
+      flex: 1;
+      min-width: 0;
     }
 
-    .status-copy strong {
+    .statusbar-text strong {
       font-size: 11px;
       font-weight: 600;
     }
 
-    .status-copy span {
+    .statusbar-text span {
       font-size: 10px;
-      line-height: 1.5;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .status-feed-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
       color: var(--muted);
     }
 
@@ -470,9 +621,27 @@ class SidebarViewProvider {
 </head>
 <body>
   <div class="shell">
-    <div class="app">
-      <section class="section">
-        <div class="section-title">Inputs</div>
+    <header class="masthead">
+      <span class="masthead-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10"/><path d="M4 12h7"/><path d="M4 17h10"/><path d="m16 9 4 3-4 3"/></svg>
+      </span>
+      <span class="masthead-copy">
+        <h1>Swagger to SDK</h1>
+        <p>Spec in, typed client out.</p>
+      </span>
+    </header>
+
+    <ol class="steps">
+      <li class="step is-open" data-step="1">
+        <button class="step-head" type="button" aria-expanded="true" aria-controls="step-body-1">
+          <span class="step-badge">1</span>
+          <span class="step-headings">
+            <span class="step-title">Configure</span>
+            <span class="step-summary" id="summary-1">Source, output &amp; adapter</span>
+          </span>
+          <span class="step-caret" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+        </button>
+        <div class="step-body" id="step-body-1">
           <div class="field">
             <label for="source">OpenAPI source</label>
             <input id="source" type="text" placeholder="/path/openapi.yaml or https://..." />
@@ -482,17 +651,17 @@ class SidebarViewProvider {
             </div>
           </div>
 
-        <div class="field">
-          <label for="outputPath">Output path</label>
-          <div class="field-row">
-            <input id="outputPath" type="text" placeholder="/workspace/generated-sdk" />
-            <button id="pickOutputButton" type="button">Browse</button>
+          <div class="field">
+            <label for="outputPath">Output path</label>
+            <div class="field-row">
+              <input id="outputPath" type="text" placeholder="/workspace/generated-sdk" />
+              <button id="pickOutputButton" class="btn" type="button">Browse</button>
+            </div>
+            <div class="field-meta">
+              <span>Workspace target</span>
+              <span id="outputMeta">SDK will be written here</span>
+            </div>
           </div>
-          <div class="field-meta">
-            <span>Workspace target</span>
-            <span id="outputMeta">SDK will be written here</span>
-          </div>
-        </div>
 
           <div class="field">
             <label for="baseURL">Base URL</label>
@@ -511,37 +680,63 @@ class SidebarViewProvider {
               <option value="react-query">React Query</option>
             </select>
           </div>
-      </section>
 
-      <section class="section">
-        <div class="section-title">Actions</div>
-          <div class="actions">
-            <button id="saveConfigButton">Save settings</button>
-            <button id="importButton" class="primary">Import OpenAPI</button>
-            <button id="generateButton">Generate SDK</button>
+          <div class="step-footer">
+            <button id="saveConfigButton" class="link-button" type="button">Save configuration</button>
           </div>
-      </section>
+        </div>
+      </li>
 
-      <section class="section status-shell">
-        <div class="section-title">Status</div>
-          <div class="status-toolbar">
-            <div class="status-main">
-              <div id="statusMark" class="status-mark"></div>
-              <div class="status-copy">
-                <strong id="statusTitle">Ready</strong>
-                <span id="statusSubtitle">Import a spec or generate files from the latest config.</span>
-              </div>
-            </div>
-            <button id="clearStatusButton">Clear</button>
-          </div>
+      <li class="step" data-step="2">
+        <button class="step-head" type="button" aria-expanded="false" aria-controls="step-body-2">
+          <span class="step-badge">2</span>
+          <span class="step-headings">
+            <span class="step-title">Import spec</span>
+            <span class="step-summary" id="summary-2">Load &amp; validate the document</span>
+          </span>
+          <span class="step-caret" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+        </button>
+        <div class="step-body" id="step-body-2">
+          <p class="step-hint">Fetch and parse the spec from the source above before generating.</p>
+          <button id="importButton" class="btn btn-primary" type="button">Import OpenAPI</button>
+        </div>
+      </li>
 
-          <div id="statusChip" class="status-chip">Idle</div>
+      <li class="step" data-step="3">
+        <button class="step-head" type="button" aria-expanded="false" aria-controls="step-body-3">
+          <span class="step-badge">3</span>
+          <span class="step-headings">
+            <span class="step-title">Generate SDK</span>
+            <span class="step-summary" id="summary-3">Write typed client to output</span>
+          </span>
+          <span class="step-caret" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+        </button>
+        <div class="step-body" id="step-body-3">
+          <p class="step-hint">Generates types and request methods using the selected adapter.</p>
+          <button id="generateButton" class="btn btn-primary" type="button">Generate SDK</button>
+        </div>
+      </li>
+    </ol>
 
-          <div class="status-list" id="statusFeed">
-            <div class="empty-state">No activity yet.</div>
-          </div>
-      </section>
-    </div>
+    <section class="statusbar" aria-live="polite">
+      <div class="statusbar-row">
+        <span id="statusMark" class="status-mark"></span>
+        <span class="statusbar-text">
+          <strong id="statusTitle">Ready</strong>
+          <span id="statusSubtitle">Import a spec or generate files from the latest config.</span>
+        </span>
+        <span id="statusChip" class="status-chip">Idle</span>
+      </div>
+
+      <div class="status-feed-head">
+        <span>Activity</span>
+        <button id="clearStatusButton" class="link-button" type="button">Clear</button>
+      </div>
+
+      <div class="status-list" id="statusFeed">
+        <div class="empty-state">No activity yet.</div>
+      </div>
+    </section>
   </div>
 
   <script nonce="${nonce}">
@@ -559,6 +754,47 @@ class SidebarViewProvider {
       const statusMark = document.getElementById('statusMark');
       const statusTitle = document.getElementById('statusTitle');
       const statusSubtitle = document.getElementById('statusSubtitle');
+      const stepEls = Array.from(document.querySelectorAll('.step'));
+      const summary1 = document.getElementById('summary-1');
+      const summary2 = document.getElementById('summary-2');
+      const summary3 = document.getElementById('summary-3');
+
+      function findStep(n) {
+        return stepEls.find((el) => Number(el.dataset.step) === n);
+      }
+
+      function openStep(n) {
+        stepEls.forEach((el) => {
+          const isTarget = Number(el.dataset.step) === n;
+          el.classList.toggle('is-open', isTarget);
+          const head = el.querySelector('.step-head');
+          if (head) {
+            head.setAttribute('aria-expanded', String(isTarget));
+          }
+        });
+      }
+
+      function markStepDone(n, done) {
+        const el = findStep(n);
+        if (el) {
+          el.classList.toggle('is-done', Boolean(done));
+        }
+      }
+
+      function basename(value) {
+        const parts = String(value || '').replace(/\\\\/g, '/').split('/').filter(Boolean);
+        return parts.length ? parts[parts.length - 1] : '';
+      }
+
+      function adapterLabel(value) {
+        if (value === 'axios') {
+          return 'Axios';
+        }
+        if (value === 'react-query') {
+          return 'React Query';
+        }
+        return 'fetch';
+      }
 
       const defaultState = {
         inputs: {
@@ -638,6 +874,11 @@ class SidebarViewProvider {
           : 'No source loaded';
         outputMeta.textContent = state.inputs.outputPath ? 'Custom output' : 'Default output';
         baseURLMeta.textContent = state.inputs.baseURL ? 'Included' : 'Optional';
+
+        summary1.textContent = state.inputs.source
+          ? basename(state.inputs.source) + ' · ' + adapterLabel(state.inputs.adapter)
+          : 'Source, output & adapter';
+        markStepDone(1, Boolean(state.inputs.source && state.inputs.outputPath));
       }
 
       function renderStatus() {
@@ -843,16 +1084,22 @@ class SidebarViewProvider {
         }
 
         if (message.type === 'import:success') {
+          markStepDone(2, true);
+          summary2.textContent = 'Spec imported';
+          openStep(3);
           pushStatus('success', 'Imported', 'Ready to generate.', []);
           return;
         }
 
         if (message.type === 'import:error') {
+          markStepDone(2, false);
           pushStatus('error', 'Import failed', message.payload.errors[0] || 'Check the source and try again.', []);
           return;
         }
 
         if (message.type === 'generate:success') {
+          markStepDone(3, true);
+          summary3.textContent = 'SDK generated';
           pushStatus('success', 'Generated', 'Files written successfully.', []);
           return;
         }
@@ -869,9 +1116,23 @@ class SidebarViewProvider {
           title: 'Ready',
           subtitle: 'Import a spec or generate files from the latest config.',
         };
+        markStepDone(2, false);
+        markStepDone(3, false);
+        summary2.textContent = 'Load & validate the document';
+        summary3.textContent = 'Write typed client to output';
         renderStatus();
         renderFeed();
         saveState();
+      });
+
+      stepEls.forEach((el) => {
+        const head = el.querySelector('.step-head');
+        if (!head) {
+          return;
+        }
+        head.addEventListener('click', () => {
+          openStep(el.classList.contains('is-open') ? 0 : Number(el.dataset.step));
+        });
       });
 
       sourceInput.addEventListener('input', syncInputsToState);
