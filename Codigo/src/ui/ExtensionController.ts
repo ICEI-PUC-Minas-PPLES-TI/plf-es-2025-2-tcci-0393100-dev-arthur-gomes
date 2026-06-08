@@ -1,5 +1,6 @@
 import { join } from 'node:path';
 import type { AdapterKind, Config } from '../models/config';
+import type { OpenAPI } from '../models/openapi';
 import type { GenerateArtifactsResult } from '../models/results';
 import { ConfigManager } from '../services/config/ConfigManager';
 import { FileWriter } from '../services/generators/FileWriter';
@@ -34,6 +35,7 @@ export class ExtensionController {
       importPath: config.importPath,
       outputPath: config.outputPath,
       hasOpenAPI: Boolean(config.openAPI),
+      adapterOptions: this.getAdapterOptions(),
     };
   }
 
@@ -46,6 +48,40 @@ export class ExtensionController {
     };
 
     return this.configManager.mergeConfig(normalized);
+  }
+
+  async setBaseUrl(url: string): Promise<Config> {
+    return this.updateConfig({ baseURL: url });
+  }
+
+  async setDefaultAdapter(adapter: AdapterKind): Promise<Config> {
+    return this.updateConfig({ adapter });
+  }
+
+  async setOutputPath(path: string): Promise<Config> {
+    return this.updateConfig({ outputPath: path });
+  }
+
+  getAdapterOptions(): AdapterKind[] {
+    return ['fetch', 'axios', 'react-query'];
+  }
+
+  async reloadOpenAPI(): Promise<ExtensionToUIMessage> {
+    const config = await this.configManager.getConfig();
+
+    if (!config.importPath) {
+      return {
+        type: 'import:error',
+        payload: {
+          errors: ['No OpenAPI source to reload.'],
+        },
+      };
+    }
+
+    return this.runImportOpenAPI(config.importPath, {
+      baseURL: config.baseURL,
+      outputPath: config.outputPath,
+    });
   }
 
   async runImportOpenAPI(
@@ -94,31 +130,12 @@ export class ExtensionController {
   async runGenerateMethods(
     partialConfig: Partial<Pick<Config, 'adapter' | 'baseURL' | 'outputPath'>> = {}
   ): Promise<ExtensionToUIMessage> {
-    const currentConfig = await this.configManager.getConfig();
-    const runtimeConfig: Config = {
-      ...currentConfig,
-      baseURL: this.normalizeOptionalString(partialConfig.baseURL) ?? currentConfig.baseURL,
-      outputPath: this.normalizeOptionalString(partialConfig.outputPath) ?? currentConfig.outputPath,
-      adapter: this.normalizeAdapter(partialConfig.adapter ?? currentConfig.adapter),
-    };
-
-    if (!runtimeConfig.openAPI) {
-      return {
-        type: 'generate:error',
-        payload: {
-          errors: ['No OpenAPI data found. Import a specification before generating SDK files.'],
-        },
-      };
+    const prepared = await this.prepareGeneration(partialConfig);
+    if ('error' in prepared) {
+      return prepared.error;
     }
 
-    const outputPath =
-      this.normalizeOptionalString(runtimeConfig.outputPath) ?? join(this.workspaceRoot, 'generated-sdk');
-
-    const resolvedOperations = this.operationNameResolver.resolveAll(runtimeConfig.openAPI.operations);
-    const openAPI = {
-      ...runtimeConfig.openAPI,
-      operations: resolvedOperations,
-    };
+    const { runtimeConfig, outputPath, openAPI } = prepared;
 
     const typesContent = this.typeGenerator.createTypes(openAPI.schemas, openAPI.operations);
     const sdkGenerator = new SDKGenerator({
@@ -130,7 +147,7 @@ export class ExtensionController {
     const generatedFiles: Record<string, string> = {
       'types.ts': typesContent,
       'transport.ts': transportContent,
-      'client.ts': clientContent,
+      'api.ts': clientContent,
     };
 
     if (runtimeConfig.adapter === 'react-query') {
@@ -157,6 +174,77 @@ export class ExtensionController {
         warnings: generationResult.warnings,
       },
     };
+  }
+
+  async runGenerateTypes(
+    partialConfig: Partial<Pick<Config, 'adapter' | 'baseURL' | 'outputPath'>> = {}
+  ): Promise<ExtensionToUIMessage> {
+    const prepared = await this.prepareGeneration(partialConfig);
+    if ('error' in prepared) {
+      return prepared.error;
+    }
+
+    const { outputPath, openAPI } = prepared;
+
+    const typesContent = this.typeGenerator.createTypes(openAPI.schemas, openAPI.operations);
+    const generationResult = await this.writeArtifacts(outputPath, {
+      'types.ts': typesContent,
+    });
+
+    if (!generationResult.success) {
+      return {
+        type: 'generate:error',
+        payload: {
+          errors: generationResult.errors ?? ['Failed to write generated files.'],
+          warnings: generationResult.warnings,
+        },
+      };
+    }
+
+    return {
+      type: 'generate:success',
+      payload: {
+        files: generationResult.files,
+        warnings: generationResult.warnings,
+      },
+    };
+  }
+
+  private async prepareGeneration(
+    partialConfig: Partial<Pick<Config, 'adapter' | 'baseURL' | 'outputPath'>>
+  ): Promise<
+    | { error: ExtensionToUIMessage }
+    | { runtimeConfig: Config; outputPath: string; openAPI: OpenAPI }
+  > {
+    const currentConfig = await this.configManager.getConfig();
+    const runtimeConfig: Config = {
+      ...currentConfig,
+      baseURL: this.normalizeOptionalString(partialConfig.baseURL) ?? currentConfig.baseURL,
+      outputPath: this.normalizeOptionalString(partialConfig.outputPath) ?? currentConfig.outputPath,
+      adapter: this.normalizeAdapter(partialConfig.adapter ?? currentConfig.adapter),
+    };
+
+    if (!runtimeConfig.openAPI) {
+      return {
+        error: {
+          type: 'generate:error',
+          payload: {
+            errors: ['No OpenAPI data found. Import a specification before generating SDK files.'],
+          },
+        },
+      };
+    }
+
+    const outputPath =
+      this.normalizeOptionalString(runtimeConfig.outputPath) ?? join(this.workspaceRoot, 'generated-sdk');
+
+    const resolvedOperations = this.operationNameResolver.resolveAll(runtimeConfig.openAPI.operations);
+    const openAPI: OpenAPI = {
+      ...runtimeConfig.openAPI,
+      operations: resolvedOperations,
+    };
+
+    return { runtimeConfig, outputPath, openAPI };
   }
 
   private async writeArtifacts(
@@ -201,7 +289,7 @@ export class ExtensionController {
   }
 
   private generateIndexFile(adapter: AdapterKind): string {
-    const exports = ["export * from './types';", "export * from './transport';", "export * from './client';"];
+    const exports = ["export * from './types';", "export * from './transport';", "export * from './api';"];
 
     if (adapter === 'react-query') {
       exports.push("export * from './react-query';");

@@ -1,4 +1,4 @@
-import type { OperationResponseModel } from '../models/operation';
+import type { OperationResponse } from '../models/operation';
 import { toTypeName } from './naming';
 
 export function pathParamsTypeName(functionName: string): string {
@@ -29,7 +29,7 @@ export function responseTypeName(functionName: string, statusCode: string): stri
   return `${toTypeName(functionName)}Response${statusCode.replace(/[^0-9A-Za-z]/g, '')}`;
 }
 
-export function pickPrimaryResponseStatus(responses: OperationResponseModel[]): string | undefined {
+export function pickPrimaryResponseStatus(responses: OperationResponse[]): string | undefined {
   const priority = ['200', '201', '204'];
 
   for (const preferred of priority) {

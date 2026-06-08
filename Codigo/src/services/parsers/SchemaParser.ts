@@ -1,4 +1,4 @@
-import type { EnumValue, SchemaModel, SchemaRefOrInline } from '../../models/schema';
+import type { EnumValue, Schema, SchemaProperties, SchemaRefOrInline } from '../../models/schema';
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -18,8 +18,8 @@ function isEnumValue(value: unknown): value is EnumValue {
 }
 
 export class SchemaParser {
-  parseSchemas(schemas: Record<string, unknown> = {}): Record<string, SchemaModel> {
-    const parsed: Record<string, SchemaModel> = {};
+  parseSchemas(schemas: Record<string, unknown> = {}): Record<string, Schema> {
+    const parsed: Record<string, Schema> = {};
 
     for (const [name, schema] of Object.entries(schemas)) {
       parsed[name] = this.parseSchemaModel(name, schema);
@@ -44,9 +44,9 @@ export class SchemaParser {
     };
   }
 
-  parseSchemaModel(name: string, rawSchema: unknown): SchemaModel {
+  parseSchemaModel(name: string, rawSchema: unknown): Schema {
     const schemaObject = asRecord(rawSchema) ?? {};
-    const parsed: SchemaModel = { name };
+    const parsed: Schema = { name };
 
     if (typeof schemaObject.$ref === 'string') {
       parsed.ref = schemaObject.$ref;
@@ -84,7 +84,7 @@ export class SchemaParser {
 
     const properties = asRecord(schemaObject.properties);
     if (properties) {
-      const parsedProperties: Record<string, SchemaRefOrInline> = {};
+      const parsedProperties: SchemaProperties = {};
 
       for (const [propertyName, propertySchema] of Object.entries(properties)) {
         const parsedProperty = this.parseRefOrInline(propertySchema, `${name}${propertyName}`);

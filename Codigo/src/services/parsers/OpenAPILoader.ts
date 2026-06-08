@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { parse as parseYaml } from 'yaml';
-import type { OpenAPIModel } from '../../models/openapi';
+import type { OpenAPI, RawOpenAPI } from '../../models/openapi';
 import type { ImportOpenAPIResult } from '../../models/results';
 import { OperationNameResolver } from '../generators/OperationNameResolver';
 import { PathParser } from './PathParser';
@@ -44,6 +44,7 @@ export class OpenAPILoader {
     if (!pathOrUrl.trim()) {
       return {
         success: false,
+        openAPI: this.createFailedOpenAPI(),
         errors: ['OpenAPI source cannot be empty.'],
       };
     }
@@ -59,6 +60,7 @@ export class OpenAPILoader {
       if (!validation.valid) {
         return {
           success: false,
+          openAPI: this.createFailedOpenAPI(),
           warnings: validation.warnings,
           errors: validation.errors,
         };
@@ -72,7 +74,7 @@ export class OpenAPILoader {
       );
       const info = asRecord(record.info);
 
-      const openAPI: OpenAPIModel = {
+      const openAPI: OpenAPI = {
         version: typeof record.openapi === 'string' ? record.openapi : '3.0.0',
         info: info
           ? {
@@ -93,9 +95,19 @@ export class OpenAPILoader {
     } catch (error) {
       return {
         success: false,
+        openAPI: this.createFailedOpenAPI(),
         errors: [error instanceof Error ? error.message : 'Unknown OpenAPI import error.'],
       };
     }
+  }
+
+  private createFailedOpenAPI(): OpenAPI {
+    return {
+      version: '',
+      schemas: {},
+      operations: [],
+      status: 'FAILED',
+    };
   }
 
   private isUrl(value: string): boolean {
@@ -123,22 +135,22 @@ export class OpenAPILoader {
     }
   }
 
-  private parseDocument(content: string, source: string): unknown {
+  private parseDocument(content: string, source: string): RawOpenAPI {
     const normalizedSource = source.toLowerCase();
 
     try {
       if (normalizedSource.endsWith('.json')) {
-        return JSON.parse(content) as unknown;
+        return JSON.parse(content) as RawOpenAPI;
       }
 
       if (normalizedSource.endsWith('.yaml') || normalizedSource.endsWith('.yml')) {
-        return parseYaml(content) as unknown;
+        return parseYaml(content) as RawOpenAPI;
       }
 
       try {
-        return JSON.parse(content) as unknown;
+        return JSON.parse(content) as RawOpenAPI;
       } catch {
-        return parseYaml(content) as unknown;
+        return parseYaml(content) as RawOpenAPI;
       }
     } catch (error) {
       throw new Error(

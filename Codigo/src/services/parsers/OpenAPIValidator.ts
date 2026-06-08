@@ -1,4 +1,12 @@
-const SUPPORTED_HTTP_METHODS = new Set(['get', 'post', 'put', 'patch', 'delete']);
+const SUPPORTED_HTTP_METHODS = new Set([
+  'get',
+  'post',
+  'put',
+  'patch',
+  'delete',
+  'head',
+  'options',
+]);
 const KNOWN_HTTP_METHODS = new Set([
   'get',
   'post',

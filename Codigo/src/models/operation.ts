@@ -1,28 +1,31 @@
-import type { SchemaModel, SchemaRefOrInline } from './schema';
+import type { Schema, SchemaRefOrInline } from './schema';
 
-export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head' | 'options';
 export type ParameterLocation = 'path' | 'query' | 'header' | 'cookie';
 
-export interface ParameterModel {
+export type PathItem = Record<string, unknown>;
+export type OperationSchema = SchemaRefOrInline;
+
+export interface Parameter {
   name: string;
   in: ParameterLocation;
   required: boolean;
-  schema?: SchemaModel;
+  schema?: Schema;
   ref?: string;
 }
 
-export interface OperationRequestBodyModel {
+export interface OperationRequestBody {
   required?: boolean;
-  content: Record<string, SchemaRefOrInline>;
+  content: Record<string, OperationSchema>;
 }
 
-export interface OperationResponseModel {
+export interface OperationResponse {
   statusCode: string;
   description?: string;
-  content: Record<string, SchemaRefOrInline>;
+  content: Record<string, OperationSchema>;
 }
 
-export interface OperationModel {
+export interface Operation {
   operationId?: string;
   functionName: string;
   method: HttpMethod;
@@ -30,7 +33,7 @@ export interface OperationModel {
   summary?: string;
   description?: string;
   tags?: string[];
-  parameters: ParameterModel[];
-  requestBody?: OperationRequestBodyModel;
-  responses: OperationResponseModel[];
+  parameters: Parameter[];
+  requestBody?: OperationRequestBody;
+  responses: OperationResponse[];
 }

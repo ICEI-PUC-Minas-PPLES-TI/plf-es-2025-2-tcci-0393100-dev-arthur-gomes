@@ -6,6 +6,7 @@ export interface UIConfigPayload {
   adapter: AdapterKind;
   outputPath?: string;
   hasOpenAPI: boolean;
+  adapterOptions: AdapterKind[];
 }
 
 export type UIToExtensionMessage =
@@ -46,6 +47,26 @@ export type UIToExtensionMessage =
       payload?: {
         currentPath?: string;
       };
+    }
+  | { type: 'ui:reload' }
+  | { type: 'ui:generateTypes' }
+  | {
+      type: 'ui:setBaseUrl';
+      payload: {
+        baseURL: string;
+      };
+    }
+  | {
+      type: 'ui:setAdapter';
+      payload: {
+        adapter: AdapterKind;
+      };
+    }
+  | {
+      type: 'ui:setOutputPath';
+      payload: {
+        outputPath: string;
+      };
     };
 
 export type ExtensionToUIMessage =
@@ -80,5 +101,11 @@ export type ExtensionToUIMessage =
       payload: {
         errors: string[];
         warnings?: string[];
+      };
+    }
+  | {
+      type: 'ext:focusStep';
+      payload: {
+        step: number;
       };
     };

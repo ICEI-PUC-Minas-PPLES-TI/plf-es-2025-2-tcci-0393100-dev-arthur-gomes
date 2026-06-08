@@ -1,8 +1,8 @@
-import type { OpenAPIModel } from './openapi';
+import type { OpenAPI } from './openapi';
 
 export interface ImportOpenAPIResult {
   success: boolean;
-  openAPI?: OpenAPIModel;
+  openAPI?: OpenAPI;
   warnings?: string[];
   errors?: string[];
 }

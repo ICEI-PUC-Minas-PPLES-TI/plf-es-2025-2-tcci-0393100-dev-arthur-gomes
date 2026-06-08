@@ -1,3 +1,8 @@
 Codigo/node_modules
 Codigo/out
 generated-sdk
+Codigo/*.vsix
+
+# Prop de apresentação (demo da extensão) — não versionar
+demo/
+demo-extension

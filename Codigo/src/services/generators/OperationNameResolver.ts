@@ -1,8 +1,8 @@
-import type { OperationModel } from '../../models/operation';
+import type { Operation } from '../../models/operation';
 import { sanitizeIdentifier, sanitizeOperationId, toPascalCase } from '../../utils/naming';
 
 export class OperationNameResolver {
-  resolve(operation: Pick<OperationModel, 'operationId' | 'method' | 'path'>): string {
+  resolve(operation: Pick<Operation, 'operationId' | 'method' | 'path'>): string {
     if (operation.operationId) {
       return sanitizeOperationId(operation.operationId);
     }
@@ -23,7 +23,7 @@ export class OperationNameResolver {
     return sanitizeIdentifier(name);
   }
 
-  resolveAll(operations: OperationModel[]): OperationModel[] {
+  resolveAll(operations: Operation[]): Operation[] {
     const occurrences = new Map<string, number>();
 
     return operations.map((operation) => {

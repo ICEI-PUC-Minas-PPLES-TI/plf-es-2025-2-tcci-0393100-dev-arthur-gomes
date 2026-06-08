@@ -1,14 +1,23 @@
 import type {
   HttpMethod,
-  OperationModel,
-  OperationRequestBodyModel,
-  OperationResponseModel,
+  Operation,
+  OperationRequestBody,
+  OperationResponse,
   ParameterLocation,
-  ParameterModel,
+  Parameter,
+  PathItem,
 } from '../../models/operation';
 import { SchemaParser } from './SchemaParser';
 
-const SUPPORTED_HTTP_METHODS: HttpMethod[] = ['get', 'post', 'put', 'patch', 'delete'];
+const SUPPORTED_HTTP_METHODS: HttpMethod[] = [
+  'get',
+  'post',
+  'put',
+  'patch',
+  'delete',
+  'head',
+  'options',
+];
 const PARAMETER_LOCATIONS: ParameterLocation[] = ['path', 'query', 'header', 'cookie'];
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -31,11 +40,11 @@ function asStringArray(value: unknown): string[] | undefined {
 export class PathParser {
   constructor(private readonly schemaParser: SchemaParser) {}
 
-  parsePaths(paths: Record<string, unknown>): OperationModel[] {
-    const operations: OperationModel[] = [];
+  parsePaths(paths: Record<string, unknown>): Operation[] {
+    const operations: Operation[] = [];
 
     for (const [path, rawPathItem] of Object.entries(paths)) {
-      const pathItem = asRecord(rawPathItem);
+      const pathItem: PathItem | undefined = asRecord(rawPathItem);
       if (!pathItem) {
         continue;
       }
@@ -63,9 +72,9 @@ export class PathParser {
   private extractOperation(
     path: string,
     method: HttpMethod,
-    operation: Record<string, unknown>,
-    pathLevelParameters: ParameterModel[]
-  ): OperationModel {
+    operation: PathItem,
+    pathLevelParameters: Parameter[]
+  ): Operation {
     const operationParameters = this.parseParameters(operation.parameters);
     const mergedParameters = this.mergeParameters(pathLevelParameters, operationParameters);
 
@@ -83,8 +92,8 @@ export class PathParser {
     };
   }
 
-  private mergeParameters(pathLevel: ParameterModel[], operationLevel: ParameterModel[]): ParameterModel[] {
-    const merged = new Map<string, ParameterModel>();
+  private mergeParameters(pathLevel: Parameter[], operationLevel: Parameter[]): Parameter[] {
+    const merged = new Map<string, Parameter>();
 
     for (const parameter of pathLevel) {
       merged.set(`${parameter.in}:${parameter.name}`, parameter);
@@ -97,12 +106,12 @@ export class PathParser {
     return [...merged.values()];
   }
 
-  private parseParameters(parametersValue: unknown): ParameterModel[] {
+  private parseParameters(parametersValue: unknown): Parameter[] {
     if (!Array.isArray(parametersValue)) {
       return [];
     }
 
-    const parameters: ParameterModel[] = [];
+    const parameters: Parameter[] = [];
 
     for (const rawParameter of parametersValue) {
       const parameter = asRecord(rawParameter);
@@ -147,7 +156,7 @@ export class PathParser {
     return parameters;
   }
 
-  private parseRequestBody(requestBodyValue: unknown): OperationRequestBodyModel | undefined {
+  private parseRequestBody(requestBodyValue: unknown): OperationRequestBody | undefined {
     const requestBody = asRecord(requestBodyValue);
     if (!requestBody) {
       return undefined;
@@ -158,7 +167,7 @@ export class PathParser {
       return undefined;
     }
 
-    const content: OperationRequestBodyModel['content'] = {};
+    const content: OperationRequestBody['content'] = {};
 
     for (const [mediaType, rawMediaType] of Object.entries(contentRecord)) {
       const mediaTypeObject = asRecord(rawMediaType);
@@ -186,13 +195,13 @@ export class PathParser {
     };
   }
 
-  private parseResponses(responsesValue: unknown): OperationResponseModel[] {
+  private parseResponses(responsesValue: unknown): OperationResponse[] {
     const responses = asRecord(responsesValue);
     if (!responses) {
       return [];
     }
 
-    const parsedResponses: OperationResponseModel[] = [];
+    const parsedResponses: OperationResponse[] = [];
 
     for (const [statusCode, rawResponse] of Object.entries(responses)) {
       const response = asRecord(rawResponse);
@@ -201,7 +210,7 @@ export class PathParser {
       }
 
       const contentRecord = asRecord(response.content);
-      const content: OperationResponseModel['content'] = {};
+      const content: OperationResponse['content'] = {};
 
       if (contentRecord) {
         for (const [mediaType, rawMediaType] of Object.entries(contentRecord)) {

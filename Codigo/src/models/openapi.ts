@@ -1,17 +1,19 @@
-import type { OperationModel } from './operation';
-import type { SchemaModel } from './schema';
+import type { Operation } from './operation';
+import type { Schema } from './schema';
 
 export type OpenAPIStatus = 'NOT_INITIALIZED' | 'COMPLETED' | 'FAILED';
 
-export interface OpenAPIInfo {
+export type RawOpenAPI = Record<string, unknown>;
+
+export interface Info {
   title?: string;
   version?: string;
 }
 
-export interface OpenAPIModel {
+export interface OpenAPI {
   version: string;
-  info?: OpenAPIInfo;
-  schemas: Record<string, SchemaModel>;
-  operations: OperationModel[];
+  info?: Info;
+  schemas: Record<string, Schema>;
+  operations: Operation[];
   status: OpenAPIStatus;
 }

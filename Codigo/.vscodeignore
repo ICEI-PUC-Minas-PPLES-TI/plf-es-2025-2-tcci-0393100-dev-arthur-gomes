@@ -4,3 +4,10 @@ src/**
 .gitignore
 tsconfig.json
 node_modules/**
+**/*
+!package.json
+!README.md
+!LICENSE
+!resources/**
+!out/extension.js
+!out/extension.js.map

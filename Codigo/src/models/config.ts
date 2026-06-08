@@ -1,4 +1,4 @@
-import type { OpenAPIModel } from './openapi';
+import type { OpenAPI } from './openapi';
 
 export type AdapterKind = 'fetch' | 'axios' | 'react-query';
 
@@ -7,5 +7,5 @@ export interface Config {
   importPath?: string;
   adapter: AdapterKind;
   outputPath?: string;
-  openAPI?: OpenAPIModel;
+  openAPI?: OpenAPI;
 }

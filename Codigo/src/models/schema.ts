@@ -2,10 +2,12 @@ export type EnumValue = string | number | boolean | null;
 
 export interface SchemaRefOrInline {
   ref?: string;
-  schema?: SchemaModel;
+  schema?: Schema;
 }
 
-export interface SchemaModel {
+export type SchemaProperties = Record<string, SchemaRefOrInline>;
+
+export interface Schema {
   name: string;
   type?: string;
   format?: string;
@@ -13,6 +15,6 @@ export interface SchemaModel {
   required?: string[];
   enum?: EnumValue[];
   items?: SchemaRefOrInline;
-  properties?: Record<string, SchemaRefOrInline>;
+  properties?: SchemaProperties;
   ref?: string;
 }
