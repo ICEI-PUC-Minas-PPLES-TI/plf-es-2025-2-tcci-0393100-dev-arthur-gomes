@@ -15,8 +15,6 @@ const SUPPORTED_HTTP_METHODS: HttpMethod[] = [
   'put',
   'patch',
   'delete',
-  'head',
-  'options',
 ];
 const PARAMETER_LOCATIONS: ParameterLocation[] = ['path', 'query', 'header', 'cookie'];
 
@@ -120,7 +118,7 @@ export class PathParser {
       }
 
       if (typeof parameter.$ref === 'string') {
-        const inferredName = parameter.$ref.split('/').pop() ?? 'refParameter';
+        const inferredName = parameter.$ref.split('/').pop() || 'refParameter';
         parameters.push({
           name: inferredName,
           in: 'query',

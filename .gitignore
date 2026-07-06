@@ -1,5 +1,6 @@
 Codigo/node_modules
 Codigo/out
+Codigo/coverage
 generated-sdk
 Codigo/*.vsix
 

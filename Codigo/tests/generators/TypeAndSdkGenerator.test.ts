@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { Config } from '../../src/models/config';
-import type { OperationModel } from '../../src/models/operation';
-import type { SchemaModel } from '../../src/models/schema';
+import type { Operation } from '../../src/models/operation';
+import type { Schema } from '../../src/models/schema';
 import { ReactQueryGenerator } from '../../src/services/generators/ReactQueryGenerator';
 import { SDKGenerator } from '../../src/services/generators/SDKGenerator';
 import { TypeGenerator } from '../../src/services/generators/TypeGenerator';
 
-const schemas: Record<string, SchemaModel> = {
+const schemas: Record<string, Schema> = {
   User: {
     name: 'User',
     type: 'object',
@@ -19,7 +19,7 @@ const schemas: Record<string, SchemaModel> = {
   },
 };
 
-const operations: OperationModel[] = [
+const operations: Operation[] = [
   {
     functionName: 'getUsersById',
     method: 'get',

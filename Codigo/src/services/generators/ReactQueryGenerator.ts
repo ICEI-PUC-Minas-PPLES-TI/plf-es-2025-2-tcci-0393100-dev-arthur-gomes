@@ -40,7 +40,10 @@ export class ReactQueryGenerator {
     const hookName = `use${toTypeName(operation.functionName)}`;
     const hasRequiredArgs = this.hasRequiredArgs(operation);
     const argsSignature = hasRequiredArgs ? `args: ${argsType}` : `args: ${argsType} = {}`;
-    const argsPassThrough = hasRequiredArgs ? 'args' : 'args = {}';
+    // The signature already defaults args to {} when optional, so pass it
+    // straight through — `args = {}` here would reassign and clobber a
+    // caller-supplied value.
+    const argsPassThrough = 'args';
 
     return `export function ${queryKeyName}(${argsSignature}) {
   return [${JSON.stringify(operation.functionName)}, args] as const;
@@ -116,8 +119,11 @@ export function ${hookName}(
   }
 
   private getResponseType(operation: Operation): string {
-    const statusCode = pickPrimaryResponseStatus(operation.responses) ?? '200';
-    return `Types.${responseTypeName(operation.functionName, statusCode)}`;
+    const statusCode = pickPrimaryResponseStatus(operation.responses);
+    // Mirror TypeGenerator: only reference a declared response type.
+    return statusCode
+      ? `Types.${responseTypeName(operation.functionName, statusCode)}`
+      : 'unknown';
   }
 
   private hasRequiredArgs(operation: Operation): boolean {

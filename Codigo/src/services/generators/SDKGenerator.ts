@@ -52,8 +52,12 @@ export class SDKGenerator {
 
   private generateMethod(operation: Operation): string {
     const uppercaseMethod = operation.method.toUpperCase();
-    const statusCode = pickPrimaryResponseStatus(operation.responses) ?? '200';
-    const responseType = `Types.${responseTypeName(operation.functionName, statusCode)}`;
+    const statusCode = pickPrimaryResponseStatus(operation.responses);
+    // TypeGenerator only declares a response type when a primary status exists.
+    // Mirror that here so we never reference an undeclared Types.<Fn>ResponseXXX.
+    const responseType = statusCode
+      ? `Types.${responseTypeName(operation.functionName, statusCode)}`
+      : 'unknown';
 
     const hasPathParams = operation.parameters.some((parameter) => parameter.in === 'path');
     const hasQueryParams = operation.parameters.some((parameter) => parameter.in === 'query');

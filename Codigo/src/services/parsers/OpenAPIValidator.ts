@@ -4,8 +4,6 @@ const SUPPORTED_HTTP_METHODS = new Set([
   'put',
   'patch',
   'delete',
-  'head',
-  'options',
 ]);
 const KNOWN_HTTP_METHODS = new Set([
   'get',

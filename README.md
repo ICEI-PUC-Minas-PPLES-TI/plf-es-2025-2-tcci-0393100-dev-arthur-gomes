@@ -4,6 +4,14 @@
 
 Este projeto tem o objetivo de automatizar a geração de clientes de acesso a serviços baseados no padrão de Transferência de Estado Representacional para aplicações de interface com o usuário, utilizando o TypeScript como linguagem principal e tomando como fonte de verdade, especificações em Swagger/OpenAPI.
 
+## Demonstração
+
+Fluxo completo de geração do SDK, começando pela importação da especificação OpenAPI até os arquivos gerados:
+
+![Fluxo de geração do SDK](docs/images/generation-flow.gif)
+
+> Documentação técnica completa (funcionalidades, instalação, exemplos de entrada/saída e configurações) em [`Codigo/README.md`](Codigo/README.md).
+
 ## Alunos integrantes da equipe
 
 - Arthur do Nascimento Sita Gomes

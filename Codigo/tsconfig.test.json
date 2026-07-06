@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "lib": ["ES2020", "DOM"]
+  },
+  "//": "Type-contract program only. Runtime .test.ts files are type-erased by esbuild at run time; type-checking heavily-mocked specs yields noise, not value.",
+  "include": ["src/**/*.ts", "tests/**/*.test-d.ts"],
+  "exclude": ["node_modules", ".vscode-test", "out"]
+}

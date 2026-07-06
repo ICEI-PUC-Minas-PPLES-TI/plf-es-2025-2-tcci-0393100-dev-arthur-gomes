@@ -1,8 +1,16 @@
 # Swagger to SDK
 
-Extensão para o **Visual Studio Code** que gera um **SDK TypeScript tipado** a partir de uma especificação **OpenAPI/Swagger**. O objetivo é eliminar o *boilerplate* de integração com APIs REST: importe a documentação OpenAPI (arquivo local ou URL) e a extensão gera as funções de acesso aos *endpoints*, suas tipagens e a camada de transporte HTTP.
+Extensão para o **Visual Studio Code** que gera um **SDK TypeScript tipado** a partir de uma especificação **OpenAPI/Swagger**. O objetivo é eliminar o _boilerplate_ de integração com APIs REST: importe a documentação OpenAPI (arquivo local ou URL) e a extensão gera as funções de acesso aos _endpoints_, suas tipagens e a camada de transporte HTTP.
 
 > TCC — Engenharia de Software, PUC Minas. Autor: Arthur do Nascimento Sita Gomes.
+
+---
+
+## Demonstração
+
+Fluxo completo de geração do SDK — da importação da especificação OpenAPI até os arquivos gerados:
+
+![Fluxo de geração do SDK](docs/generation-flow.gif)
 
 ---
 
@@ -10,8 +18,8 @@ Extensão para o **Visual Studio Code** que gera um **SDK TypeScript tipado** a 
 
 - **Importação de OpenAPI** a partir de arquivo local (`.json`, `.yaml`, `.yml`) ou URL pública.
 - **Validação** do documento (OpenAPI 3.x) antes da geração.
-- **Geração de funções** que conectam aos *endpoints*, nomeadas por `operationId` (ou por `método + caminho` quando ausente, com tratamento de colisões).
-- **Tipagem estática completa**: `schemas`, parâmetros (`path`, `query`, `header`, `cookie`), `requestBody` e respostas indexadas por código de *status*.
+- **Geração de funções** que conectam aos _endpoints_, nomeadas por `operationId` (ou por `método + caminho` quando ausente, com tratamento de colisões).
+- **Tipagem estática completa**: `schemas`, parâmetros (`path`, `query`, `header`, `cookie`), `requestBody` e respostas indexadas por código de _status_.
 - **Adaptadores HTTP** selecionáveis: `fetch` (nativo), `axios` e `react-query`.
 - **Recarregar (reload)** a especificação a partir da fonte salva, com um clique.
 - **Configuração** de URL base, adaptador padrão e diretório de saída.
@@ -53,11 +61,11 @@ Ações adicionais:
 
 Também disponível pela paleta de comandos (`Cmd/Ctrl+Shift+P`):
 
-| Comando | Ação |
-| :-- | :-- |
-| `Swagger to SDK: Import OpenAPI` | Importa uma especificação (entrada por caminho ou URL) |
-| `Swagger to SDK: Generate SDK` | Gera o SDK a partir da especificação importada |
-| `Swagger to SDK: Open Extension Tab` | Abre/foca a aba da extensão |
+| Comando                              | Ação                                                   |
+| :----------------------------------- | :----------------------------------------------------- |
+| `Swagger to SDK: Import OpenAPI`     | Importa uma especificação (entrada por caminho ou URL) |
+| `Swagger to SDK: Generate SDK`       | Gera o SDK a partir da especificação importada         |
+| `Swagger to SDK: Open Extension Tab` | Abre/foca a aba da extensão                            |
 
 ---
 
@@ -65,26 +73,122 @@ Também disponível pela paleta de comandos (`Cmd/Ctrl+Shift+P`):
 
 No diretório de saída (padrão `generated-sdk`):
 
-| Arquivo | Conteúdo |
-| :-- | :-- |
-| `types.ts` | Tipos de `schemas`, parâmetros, `requestBody` e respostas por *status* |
-| `transport.ts` | Abstração de transporte HTTP (implementação `fetch` ou `axios`) |
-| `api.ts` | Funções que conectam aos *endpoints*, com assinaturas tipadas |
-| `index.ts` | Reexportações (*barrel*) dos módulos gerados |
-| `react-query.ts` | *Hooks* do React Query (apenas quando `adapter = react-query`) |
+| Arquivo          | Conteúdo                                                               |
+| :--------------- | :--------------------------------------------------------------------- |
+| `types.ts`       | Tipos de `schemas`, parâmetros, `requestBody` e respostas por _status_ |
+| `transport.ts`   | Abstração de transporte HTTP (implementação `fetch` ou `axios`)        |
+| `api.ts`         | Funções que conectam aos _endpoints_, com assinaturas tipadas          |
+| `index.ts`       | Reexportações (_barrel_) dos módulos gerados                           |
+| `react-query.ts` | _Hooks_ do React Query (apenas quando `adapter = react-query`)         |
+
+---
+
+## Exemplo: da especificação ao SDK
+
+A partir de uma especificação OpenAPI (aqui, um recorte da _Swagger Petstore_ com a operação `findPetsByStatus`):
+
+**Entrada — `openapi.yaml`**
+
+```yaml
+openapi: 3.0.0
+info:
+  title: Swagger Petstore
+  version: 1.0.0
+servers:
+  - url: https://petstore.swagger.io/v2
+paths:
+  /pet/findByStatus:
+    get:
+      operationId: findPetsByStatus
+      parameters:
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [available, pending, sold]
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+components:
+  schemas:
+    Pet:
+      type: object
+      required: [name, photoUrls]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        photoUrls: { type: array, items: { type: string } }
+        status:
+          type: string
+          enum: [available, pending, sold]
+```
+
+A extensão gera a tipagem e a função de acesso ao _endpoint_:
+
+**Saída — `types.ts`**
+
+```typescript
+export interface Pet {
+  id?: number;
+  name: string;
+  photoUrls: string[];
+  status?: "available" | "pending" | "sold";
+}
+
+export interface FindPetsByStatusQueryParams {
+  status: "available" | "pending" | "sold";
+}
+export type FindPetsByStatusResponse200 = Pet[];
+export interface FindPetsByStatusRequestArgs {
+  query?: FindPetsByStatusQueryParams;
+  headers?: Record<string, string>;
+}
+```
+
+**Saída — `api.ts`**
+
+```typescript
+export async function findPetsByStatus(
+  args: FindPetsByStatusRequestArgs = {},
+): Promise<FindPetsByStatusResponse200> {
+  const url = buildUrl("/pet/findByStatus", undefined, args.query);
+
+  return transport.request<FindPetsByStatusResponse200>({
+    method: "GET",
+    url,
+    headers: { ...(args.headers ?? {}) },
+  });
+}
+```
+
+**Uso no seu código** — tipado de ponta a ponta:
+
+```typescript
+import { findPetsByStatus } from "./generated-sdk";
+
+const pets = await findPetsByStatus({ query: { status: "available" } });
+//    ^? Pet[]
+```
 
 ---
 
 ## Configurações
 
-Disponíveis em **Settings** sob o *namespace* `plfEs`:
+Disponíveis em **Settings** sob o _namespace_ `plfEs`:
 
-| Configuração | Tipo | Padrão | Descrição |
-| :-- | :-- | :-- | :-- |
-| `plfEs.importPath` | string | `""` | Caminho de arquivo ou URL da especificação OpenAPI |
-| `plfEs.outputPath` | string | `generated-sdk` | Diretório de saída dos arquivos gerados |
-| `plfEs.baseURL` | string | `""` | URL base opcional, usada como prefixo das requisições |
-| `plfEs.adapter` | enum (`fetch`, `axios`, `react-query`) | `fetch` | Adaptador HTTP usado pelo SDK gerado |
+| Configuração       | Tipo                                   | Padrão          | Descrição                                             |
+| :----------------- | :------------------------------------- | :-------------- | :---------------------------------------------------- |
+| `plfEs.importPath` | string                                 | `""`            | Caminho de arquivo ou URL da especificação OpenAPI    |
+| `plfEs.outputPath` | string                                 | `generated-sdk` | Diretório de saída dos arquivos gerados               |
+| `plfEs.baseURL`    | string                                 | `""`            | URL base opcional, usada como prefixo das requisições |
+| `plfEs.adapter`    | enum (`fetch`, `axios`, `react-query`) | `fetch`         | Adaptador HTTP usado pelo SDK gerado                  |
 
 > Métodos HTTP suportados na geração: `get`, `post`, `put`, `patch`, `delete`, `head`, `options`.
 
@@ -101,18 +205,18 @@ npm run lint       # eslint
 npm run test       # testes (vitest)
 ```
 
-Depurar a extensão: pressione `F5` no VS Code (abre uma janela *Extension Development Host*).
+Depurar a extensão: pressione `F5` no VS Code (abre uma janela _Extension Development Host_).
 
 ### Empacotamento e publicação
 
-O empacotamento usa **bundle único** (esbuild): o `.vscodeignore` envia apenas `out/extension.js` (com `yaml` e os módulos internos *inlined*), por isso o passo de *bundle* é obrigatório antes de empacotar.
+O empacotamento usa **bundle único** (esbuild): o `.vscodeignore` envia apenas `out/extension.js` (com `yaml` e os módulos internos _inlined_), por isso o passo de _bundle_ é obrigatório antes de empacotar.
 
 ```bash
 npm run package          # build + bundle + gera o .vsix
 npm run publish-patch    # bump patch + build + verifica + empacota (via scripts/release.sh)
 ```
 
-O script `scripts/release.sh` executa a sequência correta e **verifica** que o *bundle* é autocontido (sem `require` relativo, `yaml` *inlined*, `activate` exportado) antes de empacotar:
+O script `scripts/release.sh` executa a sequência correta e **verifica** que o _bundle_ é autocontido (sem `require` relativo, `yaml` _inlined_, `activate` exportado) antes de empacotar:
 
 ```bash
 ./scripts/release.sh                       # build + verifica + empacota (.vsix)

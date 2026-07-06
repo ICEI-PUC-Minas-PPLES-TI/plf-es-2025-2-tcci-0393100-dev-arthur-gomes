@@ -40,12 +40,24 @@ export class ExtensionController {
   }
 
   async updateConfig(partialConfig: Partial<Config>): Promise<Config> {
-    const normalized: Partial<Config> = {
-      ...partialConfig,
-      baseURL: this.normalizeOptionalString(partialConfig.baseURL),
-      outputPath: this.normalizeOptionalString(partialConfig.outputPath),
-      adapter: this.normalizeAdapter(partialConfig.adapter),
-    };
+    const normalized: Partial<Config> = { ...partialConfig };
+
+    if ('baseURL' in partialConfig) {
+      normalized.baseURL = this.normalizeOptionalString(partialConfig.baseURL);
+    }
+
+    if ('outputPath' in partialConfig) {
+      normalized.outputPath = this.normalizeOptionalString(partialConfig.outputPath);
+    }
+
+    // Only touch the adapter when the caller actually supplied one; otherwise
+    // leave it out so mergeConfig preserves the stored adapter instead of
+    // silently resetting it to 'fetch'.
+    if (partialConfig.adapter !== undefined) {
+      normalized.adapter = this.normalizeAdapter(partialConfig.adapter);
+    } else {
+      delete normalized.adapter;
+    }
 
     return this.configManager.mergeConfig(normalized);
   }
